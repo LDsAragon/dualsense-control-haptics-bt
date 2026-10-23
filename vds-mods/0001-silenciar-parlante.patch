@@ -1,0 +1,98 @@
+diff --git a/src/vds_protocol.cc b/src/vds_protocol.cc
+index 560fe37..3b23aee 100644
+--- a/src/vds_protocol.cc
++++ b/src/vds_protocol.cc
+@@ -7,9 +7,13 @@
+ 
+ #include <algorithm>
+ #include <array>
++#include <atomic>
++#include <chrono>
+ #include <cstddef>
+ #include <cstdint>
++#include <cstdlib>
+ #include <cstring>
++#include <filesystem>
+ #include <memory>
+ #include <optional>
+ #include <stdexcept>
+@@ -304,6 +308,62 @@ std::uint8_t scale_light_component(std::uint8_t component,
+       (static_cast<std::uint16_t>(component) * scale + 127) / 255);
+ }
+ 
++// Speaker mute flag (dsgui / DualSense Control): while this file exists,
++// USB audio channels 1-2 (controller speaker / headset) are replaced with
++// silence before Opus encoding. Haptics (channels 3-4) are left untouched.
++// Default path: %ProgramData%\\vDS\\speaker-muted (Windows) or
++// /run/vds/speaker-muted (Linux). VDS_SPEAKER_MUTE_FLAG overrides it.
++std::filesystem::path speaker_mute_flag_path() {
++  std::string override_path;
++  std::string program_data;
++#ifdef _WIN32
++  char *value = nullptr;
++  std::size_t length = 0;
++  if (_dupenv_s(&value, &length, "VDS_SPEAKER_MUTE_FLAG") == 0 && value) {
++    override_path = value;
++  }
++  std::free(value);
++  value = nullptr;
++  if (_dupenv_s(&value, &length, "ProgramData") == 0 && value) {
++    program_data = value;
++  }
++  std::free(value);
++#else
++  if (const char *value = std::getenv("VDS_SPEAKER_MUTE_FLAG")) {
++    override_path = value;
++  }
++#endif
++  if (!override_path.empty()) {
++    return std::filesystem::path(override_path);
++  }
++#ifdef _WIN32
++  if (program_data.empty()) {
++    program_data = "C:\\ProgramData";
++  }
++  return std::filesystem::path(program_data) / "vDS" / "speaker-muted";
++#else
++  return std::filesystem::path("/run/vds/speaker-muted");
++#endif
++}
++
++bool speaker_output_muted() {
++  using Clock = std::chrono::steady_clock;
++  static const std::filesystem::path path = speaker_mute_flag_path();
++  static std::atomic<Clock::rep> next_check{0};
++  static std::atomic<bool> muted{false};
++  const Clock::rep now = Clock::now().time_since_epoch().count();
++  if (now >= next_check.load(std::memory_order_relaxed)) {
++    std::error_code error;
++    muted.store(std::filesystem::exists(path, error), std::memory_order_relaxed);
++    next_check.store(
++        now + std::chrono::duration_cast<Clock::duration>(
++                  std::chrono::milliseconds(250))
++                  .count(),
++        std::memory_order_relaxed);
++  }
++  return muted.load(std::memory_order_relaxed);
++}
++
+ } // namespace
+ 
+ struct PcmAudioExtractor::SpeakerEncoder {
+@@ -859,10 +919,15 @@ PcmAudioExtractor::push_usb_audio(std::span<const std::uint8_t> pcm_bytes) {
+   std::vector<AudioChunk> chunks;
+   chunks.reserve(pcm_bytes.size() / (kPcmFrameSize * pcm_window_frames_) + 1);
+ 
+-  const auto consume_frame = [this, &chunks](const std::uint8_t *base) {
++  const bool speaker_muted = speaker_output_muted();
++  const auto consume_frame = [this, &chunks,
++                              speaker_muted](const std::uint8_t *base) {
+     std::array<std::int16_t, kPcmChannels> samples{};
+     for (std::size_t channel = 0; channel < kPcmChannels; ++channel) {
+       samples[channel] = read_le_s16(base + channel * kPcmSampleSize);
++      if (speaker_muted && channel < kSpeakerChannels) {
++        samples[channel] = 0;
++      }
+       chunk_has_signal_ |= samples[channel] != 0;
+     }
+ 

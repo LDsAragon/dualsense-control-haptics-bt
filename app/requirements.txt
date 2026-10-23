@@ -1,0 +1,6 @@
+hidapi>=0.14
+numpy
+scipy
+soundfile
+sv-ttk
+PyAudioWPatch; sys_platform == "win32"
