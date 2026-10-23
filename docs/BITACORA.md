@@ -23,8 +23,9 @@ en **Estado actual**; abajo queda la historia completa, en orden.
 vDS nuevo y Steam Input desactivado para el juego. El usuario: "todo funcionó, lo único que no noto son
 los gatillos adaptativos". Ver la etapa 8.
 
-**En curso (23/10, noche): publicar en GitHub** (público, MIT) con un `DualSenseControl.exe` compilado por
-GitHub Actions. Falta que el usuario conecte GitHub a Claude y cree el repositorio vacío. Ver la etapa 11.
+**Publicado (23/10, 19:41):** https://github.com/LDsAragon/dualsense-control-haptics-bt (público, MIT).
+La primera corrida de la CI pasó entera: pruebas, compilación de vDS y del `.exe`, y autoprueba en un Windows
+limpio. Próximo paso: la versión `v0.2.0` en Releases. Ver la etapa 11.
 
 **Pendientes / ideas:**
 - [x] `instalar.bat` completo con la nueva estructura: compiló e instaló bien (14:08).
@@ -35,6 +36,8 @@ GitHub Actions. Falta que el usuario conecte GitHub a Claude y cree el repositor
 - [ ] Probar en la PC: Modo normal / Modo vDS y Restablecer joystick (etapa 9).
 - [ ] Probar en la PC: pestaña "Joysticks y luces" (etapa 10), idealmente con dos joysticks.
 - [ ] Confirmar el interruptor del parlante en un juego.
+- [ ] Publicar `v0.2.0` en Releases (tag desde GitHub) y probar el `.exe` en la PC.
+- [ ] Actualizar las acciones de GitHub (aviso de Node.js 20).
 - [ ] Reportar a vDS el bug de `--ports` en Windows (ver más abajo). Ofrecerle también la modificación del parlante.
 - [ ] Captura de audio de un solo proceso (modo reactivo sin Discord/Spotify).
 - [ ] Perfil "juego" para el modo reactivo (compuerta y compresor).
@@ -245,6 +248,15 @@ GitHub Actions. Falta que el usuario conecte GitHub a Claude y cree el repositor
   los parches (vcpkg del runner), corre pytest, arma el `.exe`, lo arranca con `--self-test` y lo sube como
   artefacto. Con un tag `v*` lo publica en Releases con su `.sha256`.
 - Guía para terceros: `docs/PRUEBAS.md`.
+- **Publicación:** Claude tiene acceso de solo lectura al repositorio (la app de Claude no está instalada
+  en él), así que el usuario sube los cambios con GitHub Desktop desde `Documentos\GitHub\dualsense-control-haptics-bt`
+  y Claude sigue la CI con `gh` (los registros completos no se pueden bajar desde la sesión: el almacenamiento
+  de los logs de Actions está fuera de su red; los estados de los pasos sí se ven por la API).
+  La carpeta `.github/` no se puede escribir con la copia directa de archivos: se copia con otro nombre y se mueve.
+- **Primera CI** (run 40035175594, commit `4777ad2`): verde al primer intento. Pruebas en Linux 30 s;
+  Windows 3 min 7 s (vDS + pytest + PyInstaller + autoprueba + SHA-256). Artefacto de 57 MB comprimido.
+  Avisos: Node.js 20 deprecado en `actions/checkout@v4`, `setup-python@v5` y `upload-artifact@v4` (pasar a
+  versiones nuevas), y `ubuntu-latest` migra a Ubuntu 26.
 
 ---
 
