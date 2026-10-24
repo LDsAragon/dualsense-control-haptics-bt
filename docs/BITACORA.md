@@ -25,7 +25,7 @@ los gatillos adaptativos". Ver la etapa 8.
 
 **Publicado (23/10, 19:41):** https://github.com/LDsAragon/dualsense-control-haptics-bt (público, MIT).
 La primera corrida de la CI pasó entera: pruebas, compilación de vDS y del `.exe`, y autoprueba en un Windows
-limpio. Próximo paso: la versión `v0.2.0` en Releases. Ver la etapa 11.
+limpio. El usuario creó la primera release, `0.0.1` ("First BareBones Test For Haptics Over BT"). Ver la etapa 11.
 
 **Pendientes / ideas:**
 - [x] `instalar.bat` completo con la nueva estructura: compiló e instaló bien (14:08).
@@ -36,7 +36,7 @@ limpio. Próximo paso: la versión `v0.2.0` en Releases. Ver la etapa 11.
 - [ ] Probar en la PC: Modo normal / Modo vDS y Restablecer joystick (etapa 9).
 - [ ] Probar en la PC: pestaña "Joysticks y luces" (etapa 10), idealmente con dos joysticks.
 - [ ] Confirmar el interruptor del parlante en un juego.
-- [ ] Publicar `v0.2.0` en Releases (tag desde GitHub) y probar el `.exe` en la PC.
+- [ ] Adjuntar el `.exe` a la release `0.0.1` (Run workflow) y probarlo en la PC.
 - [ ] Actualizar las acciones de GitHub (aviso de Node.js 20).
 - [ ] Reportar a vDS el bug de `--ports` en Windows (ver más abajo). Ofrecerle también la modificación del parlante.
 - [ ] Captura de audio de un solo proceso (modo reactivo sin Discord/Spotify).
@@ -255,6 +255,10 @@ limpio. Próximo paso: la versión `v0.2.0` en Releases. Ver la etapa 11.
   La carpeta `.github/` no se puede escribir con la copia directa de archivos: se copia con otro nombre y se mueve.
 - **Primera CI** (run 40035175594, commit `4777ad2`): verde al primer intento. Pruebas en Linux 30 s;
   Windows 3 min 7 s (vDS + pytest + PyInstaller + autoprueba + SHA-256). Artefacto de 57 MB comprimido.
+  La release `0.0.1` salió **sin el `.exe`**: la CI solo reaccionaba a etiquetas `v*` y el usuario la creó
+  sin la "v". Se corrigió: ahora dispara con `release: published` (cualquier etiqueta) y con
+  `workflow_dispatch` + `release_tag` para adjuntarlo a una release existente. La versión del código pasó a
+  `0.0.1`, para coincidir con la de la release.
   Avisos: Node.js 20 deprecado en `actions/checkout@v4`, `setup-python@v5` y `upload-artifact@v4` (pasar a
   versiones nuevas), y `ubuntu-latest` migra a Ubuntu 26.
 

@@ -28,7 +28,7 @@ import numpy as np
 # Protocolo (ver SAxense.c)
 # ---------------------------------------------------------------------------
 
-__version__ = "0.2.0"
+__version__ = "0.0.1"
 
 # ---------------------------------------------------------------------------
 # Rutas: en desarrollo, todo vive en la carpeta del proyecto; empaquetado como

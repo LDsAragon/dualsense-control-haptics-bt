@@ -1,13 +1,20 @@
 name: CI
 
 # En cada cambio: pruebas (Linux) y compilación del .exe con su autoprueba (Windows limpio).
-# Con un tag vX.Y.Z, además publica el .exe en Releases.
+# Al publicar una release en GitHub (con cualquier nombre de etiqueta), le adjunta el .exe.
+# A mano (Actions > CI > Run workflow) se puede adjuntar a una release que ya existe.
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Etiqueta de una release existente a la que adjuntar el .exe (vacío = solo compilar)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -109,11 +116,11 @@ jobs:
             dist/DualSenseControl.exe
             dist/DualSenseControl.exe.sha256
 
-      - name: Publicar en Releases
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Adjuntar a la release
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
           files: |
             dist/DualSenseControl.exe
             dist/DualSenseControl.exe.sha256
-          generate_release_notes: true

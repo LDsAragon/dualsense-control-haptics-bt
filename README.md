@@ -313,8 +313,9 @@ bash tests/vds/run.sh           # contra el código real de vDS: silencio del pa
 La CI (`.github/workflows/ci.yml`) corre las dos en Linux. Después, en Windows: compila vDS con
 `vds-mods/*.patch`, vuelve a correr las pruebas, arma `DualSenseControl.exe` con PyInstaller y lo arranca
 con `--self-test` en una máquina limpia. La autoprueba verifica bibliotecas, tema, protocolo, que estén
-los recursos y que vDS traiga nuestras modificaciones. Con un tag `vX.Y.Z` publica el `.exe` y su
-`.sha256` en Releases.
+los recursos y que vDS traiga nuestras modificaciones. Al **publicar una release** en GitHub le adjunta el
+`.exe` y su `.sha256`, sin importar el nombre de la etiqueta. Para una release que ya existe:
+*Actions → CI → Run workflow* con su etiqueta.
 
 El `.exe` también sirve por consola: `DualSenseControl.exe --cli luces`, `--cli fx heartbeat`,
 `--self-test resultado.json`, `--version`.
